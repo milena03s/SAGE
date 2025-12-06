@@ -1,0 +1,115 @@
+import flet as ft#/from flet import *
+#se a gente escrever da outra forma não teria necessidade de usarmos o ft.
+#precisa de um programa chamado openvc para a camera, então instale no seu pc
+#pip install opencv.python
+import cv2
+import time
+import os
+
+def main(page: ft.Page):
+    page.title = "Flet Mobile App"
+    page.window_width = 400
+    page.window_height = 800
+    
+    # Create main content
+
+    greeting = ft.Text(
+        "Teste ^v^",
+        size=28,
+        weight="bold",
+    )
+    
+    description = ft.Text(
+        "Esse é um app simples com flet.",
+        size=16,
+        color="gray600",
+    )
+    
+    button = ft.ElevatedButton(
+        text="Click Me!",
+        on_click=lambda e: handle_button_click(page),
+    )
+    minhaimagem = ft.Image(
+        src= False,
+        width=300,
+        height=300,
+        fit="cover"
+    )
+
+    #remover imagens da pasta de fotos
+    def apagarfotos():
+        folder_path = "minhaimagem/"
+        #checar os arquivos na pasta minhaimagem
+        files = os.listdir(folder_path)
+        for file in files:
+            file_path = os.path.join(folder_path,file)
+            #se achar remove
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+                print(f"você apagou {file_path}")
+        page.update()
+
+
+    def tireumafoto(e):
+        apagarfotos()
+        cap = cv2.VideoCapture(0)
+        cv2.namedWindow("Webcam",cv2.WINDOW_NORMAL)
+        cv2.resizeWindow("Webcam",400,600)
+
+        #salvar o nome do arquivo por tempo
+        timestamp = str(int(time.time()))
+        myfileface = str("foto"+"_"+timestamp+'.jpg')
+        try:
+            while True:
+                ret,frame = cap.read()
+                cv2.imshow("Webcam",frame)
+                minhaimagem.src = ""
+                page.update()
+                
+                #esperar input do teclado
+                key = cv2.waitKey(1)
+                #se apertar q a camera fecha e n tira foto
+                if key == ord("q"):
+                    break
+                elif key == ord("s"):
+                    #apertar s tira print e salva
+                    cv2.imwrite(f"suafoto/{myfileface}",frame)
+                    #mostrar o texto que tirou foto
+                    cv2.putText(frame,"você foi observado",(10,50).cv2.FONT_HERSHEY_SIMPLEX,1,(0,0,255),2)
+                    cv2.imshow("Webcam",frame)
+                    cv2.waitKey(3000)
+                    folder_path = "suafoto/"
+                    minhaimagem.src = folder_path + "minhaimagem/"
+                    page.update()
+                    break
+            cap.release()
+            cv2.destroyAllWindows()
+            page.update()
+        except Exception as e:
+            print(e)
+            print("fez merda meu varão")
+            
+    # Layout
+    page.add(
+        ft.Column(
+            [
+                greeting,
+                description,
+                button,
+                ft.Text("você está sendo observado",size=30,weight="bold"),
+                ft.ElevatedButton("então prova.", bgcolor="blue",color="white",on_click=tireumafoto),
+                minhaimagem
+            ],
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            spacing=20,
+        )
+    )
+
+def handle_button_click(page: ft.Page):
+    page.snack_bar = ft.SnackBar(ft.Text("Button clicked!"))
+    page.snack_bar.open = True
+    page.update()
+
+
+if __name__ == "__main__":
+    ft.app(target=main,assets_dir="suafoto")
