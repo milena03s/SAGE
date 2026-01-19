@@ -40,6 +40,8 @@ def main(page: ft.Page):
     def apagarfotos():
         folder_path = "minhaimagem/"
         #checar os arquivos na pasta minhaimagem
+        if not os.path.exists(folder_path):
+            os.makedirs(folder_path)
         files = os.listdir(folder_path)
         for file in files:
             file_path = os.path.join(folder_path,file)
@@ -63,7 +65,7 @@ def main(page: ft.Page):
             while True:
                 ret,frame = cap.read()
                 cv2.imshow("Webcam",frame)
-                minhaimagem.src = ""
+                minhaimagem.src = f"minhaimagem/{myfileface}"
                 page.update()
                 
                 #esperar input do teclado
@@ -75,19 +77,21 @@ def main(page: ft.Page):
                     #apertar s tira print e salva
                     cv2.imwrite(f"suafoto/{myfileface}",frame)
                     #mostrar o texto que tirou foto
-                    cv2.putText(frame,"você foi observado",(10,50).cv2.FONT_HERSHEY_SIMPLEX,1,(0,0,255),2)
+                    cv2.putText(frame,"você foi observado",(10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,255),2)
                     cv2.imshow("Webcam",frame)
                     cv2.waitKey(3000)
                     folder_path = "suafoto/"
                     minhaimagem.src = folder_path + "minhaimagem/"
                     page.update()
                     break
+        except Exception as e:
+            print(e)
+            print("deu ruim faz de novo >:( ")
+        finally:
+        # coloquei no finally só pra garantir q a camera vai fechar depois
             cap.release()
             cv2.destroyAllWindows()
             page.update()
-        except Exception as e:
-            print(e)
-            print("fez merda meu varão")
             
     # Layout
     page.add(
